@@ -1,13 +1,39 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+.frame {
+    @apply my-6 mx-auto py-4 px-8 text-wrap w-[90%] min-h-20 rounded-lg bg-white;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.border-custom {
+    border: 1px solid var(--border-color);
+}
+
+.number-nospin {
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
+
+.triangle-up {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 15px solid white;
+}
+
+.type {
+    @apply px-2 bg-slate-300 rounded-2xl mx-2;
+}
+
+.active {
+    @apply flex h-14 border bg-[#3a57e8] text-white items-center ps-6 transition-all rounded-md mb-1 text-wrap;
+}
+
+.navlink {
+    @apply flex h-14 border hover:bg-[#3a57e8] hover:text-white items-center ps-6 transition-all rounded-md mb-1 text-wrap;
 }
