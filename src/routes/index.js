@@ -1,7 +1,7 @@
-import HomePage from "~/pages/Home";
-import Home2 from "~/pages/Page2";
-import { DefaultLayoutAdmin } from "~/components/layouts";
-import { DefaultLayoutClient } from "~/components/layouts";
+import HomePage from '~/pages/Home';
+import Home2 from '~/pages/Page2';
+import { DefaultLayoutAdmin } from '~/components/layouts';
+import { DefaultLayoutClient } from '~/components/layouts';
 
 const publicRoutes = [
     {
@@ -19,8 +19,6 @@ const privateRoutes = [
         layout: DefaultLayoutClient,
         title: '',
     },
-
-
 ];
 
 export { publicRoutes, privateRoutes };
