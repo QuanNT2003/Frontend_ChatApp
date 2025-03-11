@@ -1,4 +1,4 @@
-import { DefaultLayoutClient } from './components/layouts';
+import { DefaultLayout } from './components/layouts';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { privateRoutes, publicRoutes } from '~/routes';
 import { Fragment, useEffect } from 'react';
@@ -10,7 +10,7 @@ function App() {
             {publicRoutes.map((route, index) => {
                 const Page = route.component;
 
-                let Layout = DefaultLayoutClient;
+                let Layout = DefaultLayout;
 
                 if (route.layout) {
                     Layout = route.layout;
@@ -32,7 +32,7 @@ function App() {
             {privateRoutes.map((route, index) => {
                 const Page = route.component;
 
-                let Layout = DefaultLayoutClient;
+                let Layout = DefaultLayout;
 
                 if (route.layout) {
                     Layout = route.layout;

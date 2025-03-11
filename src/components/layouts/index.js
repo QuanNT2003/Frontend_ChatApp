@@ -1,2 +1,1 @@
-export { default as DefaultLayoutAdmin } from './DefaultLayoutAdmin';
-export { default as DefaultLayoutClient } from './DefaultLayoutClient';
+export { default as DefaultLayout } from './DefaultLayout';
