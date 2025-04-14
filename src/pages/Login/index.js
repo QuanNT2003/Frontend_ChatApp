@@ -3,6 +3,7 @@ import Input from '~/components/Input';
 import { ToastContext } from '~/components/ToastContext';
 import ModalLoading from '~/components/ModalLoading';
 import { useNavigate } from 'react-router-dom';
+import * as UserService from '~/apiServices/userServices';
 function Login() {
     const navigate = useNavigate();
     const toastContext = useContext(ToastContext);
@@ -30,32 +31,46 @@ function Login() {
             setErrorPass('Không được để trống');
         } else {
             // setLoading(true)
-            // const obj = {
-            //     email: email,
-            //     password: password
-            // }
-            // const result = await UserService.login(obj)
-            //     .catch((error) => {
-            //         console.log(error);
-            //         toastContext.notify('error', 'Email hoặc mật khẩu không đúng');
-            //         setLoading(false);
-            //     });
-            // if (result) {
-            //     setLoading(false);
-            //     console.log(result)
-            //     if (result.status === 'ERR') toastContext.notify('error', 'Email hoặc mật khẩu không đúng');
-            //     else {
-            //         if (result.data.active === false) toastContext.notify('error', 'Tài khoản đã bị khóa');
-            //         else {
-            //             window.localStorage.setItem('user', JSON.stringify(result.data));
-            //             window.localStorage.setItem('access_token', JSON.stringify(result.access_token));
-            //             window.localStorage.setItem('refresh_token', JSON.stringify(result.refresh_token));
-            //             window.localStorage.setItem('role', "user");
-            //             toastContext.notify('success', 'Đăng nhập thành công');
-            //             navigate('/');
-            //         }
-            //     }
-            // }
+            const obj = {
+                email: email,
+                password: password,
+            };
+            const result = await UserService.login(obj).catch((error) => {
+                console.log(error);
+                toastContext.notify('error', 'Email hoặc mật khẩu không đúng');
+                setLoading(false);
+            });
+            if (result) {
+                setLoading(false);
+                console.log(result);
+                if (result.status === 'ERR')
+                    toastContext.notify(
+                        'error',
+                        'Email hoặc mật khẩu không đúng',
+                    );
+                else {
+                    if (result.data.active === false)
+                        toastContext.notify('error', 'Tài khoản đã bị khóa');
+                    else {
+                        window.localStorage.setItem(
+                            'user',
+                            JSON.stringify(result.data),
+                        );
+                        window.localStorage.setItem(
+                            'access_token',
+                            JSON.stringify(result.access_token),
+                        );
+                        window.localStorage.setItem(
+                            'refresh_token',
+                            JSON.stringify(result.refresh_token),
+                        );
+                        window.localStorage.setItem('role', 'user');
+                        // window.localStorage.setItem('role', "user");
+                        toastContext.notify('success', 'Đăng nhập thành công');
+                        navigate('/');
+                    }
+                }
+            }
         }
     };
     return (

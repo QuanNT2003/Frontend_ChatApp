@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import avatar from '~/assets/images/no_avatar.jpg';
+import ModalLoading from '~/components/ModalLoading';
 function Header({}) {
     const navigate = useNavigate();
     //Menu
@@ -24,7 +25,26 @@ function Header({}) {
         setAnchorEl(null);
     };
 
+    const [day, setDay] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(true);
+            const fetchApi = async () => {
+                setUser(JSON.parse(window.localStorage.getItem('user')));
+            };
+            fetchApi();
+            setDay(new Date());
+            setLoading(false);
+        }, 3000); // 3000 milliseconds = 3 seconds
+
+        // Cleanup function để hủy timer nếu component bị unmount trước khi timer chạy
+        return () => clearTimeout(timer);
+    }, []);
+
     const [user, setUser] = useState('');
+
+    useEffect(() => {}, [day]);
     return (
         <div className="bg-slate-100 h-[8%] flex justify-end">
             {window.localStorage.getItem('role') === 'user' ? (
@@ -44,14 +64,14 @@ function Header({}) {
                                     <Avatar
                                         alt="Remy Sharp"
                                         src={
-                                            user?.images[0].url
+                                            user?.images[0]
                                                 ? user?.images[0].url
                                                 : avatar
                                         }
                                     />
                                 )}
 
-                                <div className="hidden sm:block text-white text-[13px]">
+                                <div className="hidden sm:block text-[16px]">
                                     {user.name}
                                 </div>
                             </div>
@@ -76,8 +96,32 @@ function Header({}) {
                                 Tài khoản
                             </MenuItem>
                             <MenuItem
-                                onClick={() => {}}
                                 className="w-[200px] hover:bg-slate-400"
+                                onClick={() => {
+                                    setTimeout(() => {
+                                        setLoading(true);
+                                        window.localStorage.setItem(
+                                            'user',
+                                            null,
+                                        );
+                                        window.localStorage.setItem(
+                                            'role',
+                                            null,
+                                        );
+                                        window.localStorage.setItem(
+                                            'access_token',
+                                            null,
+                                        );
+                                        window.localStorage.setItem(
+                                            'refresh_token',
+                                            null,
+                                        );
+                                        setUser('');
+                                        setDay(new Date());
+                                        setLoading(false);
+                                        navigate('/login');
+                                    }, 500);
+                                }}
                             >
                                 <FontAwesomeIcon
                                     icon={faArrowRightFromBracket}
@@ -102,6 +146,7 @@ function Header({}) {
                     </div>
                 </div>
             )}
+            <ModalLoading open={loading} title={'Đang tải'} />
         </div>
     );
 }

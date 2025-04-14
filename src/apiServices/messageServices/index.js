@@ -45,7 +45,7 @@ export const getMessage = async (senderId, reciveId) => {
 export const getMessageRoom = async (userId) => {
     try {
         const res = await request.getMethod(
-            'message/get_message_room' + userId,
+            'message/get_message_room/' + userId,
         );
 
         return res;

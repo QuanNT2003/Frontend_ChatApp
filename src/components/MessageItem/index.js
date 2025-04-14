@@ -9,14 +9,17 @@ function MessageItem({ item, reverse }) {
             }
         >
             <div className="flex justify-center mx-2">
-                <Avatar alt="Remy Sharp" src={avatar} />
+                <Avatar
+                    alt="Remy Sharp"
+                    src={
+                        item.senderId?.images[0]
+                            ? item.senderId?.images[0].url
+                            : avatar
+                    }
+                />
             </div>
             <div className="text-wrap bg-slate-300 p-2 rounded-md w-[60%]">
-                Chào các bạn sinh viên đã đăng ký vào lớp BCH058.P21 và
-                BCH058.P22! Các bạn sẽ học tại trường Đại học KHXH&NV - ĐHQG.HCM
-                tại cơ sở Thủ Đức (cổng đi đối diện cổng A trường ĐH CNTT).
-                Thông tin đầy đủ và chi tiết được Phòng Đào tạo của trường Đại
-                học KHXH&NV gửi như sau
+                {item?.text}
             </div>
         </div>
     );
