@@ -18,8 +18,32 @@ function MessageItem({ item, reverse }) {
                     }
                 />
             </div>
-            <div className="text-wrap bg-slate-300 p-2 rounded-md w-[60%]">
-                {item?.text}
+            <div className="flex-col w-[60%]">
+                {item.text && (
+                    <div className="text-wrap bg-slate-300 p-2 rounded-md w-[100%]">
+                        {item?.text}
+                    </div>
+                )}
+                {item.images && (
+                    <div
+                        className={
+                            reverse === true ? 'flex flex-row-reverse' : 'flex'
+                        }
+                    >
+                        {item.images.map((file, index) => (
+                            <div
+                                key={index}
+                                className="group w-[100px] h-[100px] rounded-[3px] m-[5px] relative select-none"
+                            >
+                                <img
+                                    className="w-[inherit] h-[inherit] rounded-[3px]"
+                                    src={file.url}
+                                    alt=""
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

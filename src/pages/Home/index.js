@@ -4,10 +4,11 @@ import MessageBox from '~/components/MessageBox';
 import UserList from '~/components/UserList';
 import TextField from '@mui/material/TextField';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComment } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faMessage, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { ToastContext } from '~/components/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import * as MessageServices from '~/apiServices/messageServices';
+import * as ImageServices from '~/apiServices/imageServices';
 import {
     sendMessageSocket,
     socket,
@@ -26,6 +27,36 @@ function Home() {
     const [roomId, setRoomId] = useState('');
 
     const [textField, setTextField] = useState('');
+
+    // IMAGES
+    const [files, setFiles] = useState([]);
+
+    //Date
+    const [day, setDay] = useState(new Date());
+    const handleAddImages = (e) => {
+        if (e.target.files.length + files.length < 7) {
+            const arr = Array.from(e.target.files).map((file) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+
+                reader.onloadend = () => {
+                    files.push(reader.result);
+                    setDay(new Date());
+                    // addImages(reader.result)
+                };
+            });
+        }
+
+        e.target.value = null;
+    };
+    const handleRemoveImage = (index) => {
+        files.splice(index, 1);
+        setDay(new Date());
+
+        // const a = images[index].split('/');
+        // deleteImages(a[a.length - 1]);
+    };
+
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchApi = async () => {
@@ -110,6 +141,8 @@ function Home() {
 
     const onChangeRoom = (reciveId) => {
         setRoomId(reciveId);
+        setTextField('');
+        setFiles([]);
         const fetchApi = async () => {
             const result = await MessageServices.getMessage(
                 userId,
@@ -120,25 +153,24 @@ function Home() {
             });
             if (result) {
                 setMessage(result.data);
+                //console.log(result.data);
             }
         };
 
         fetchApi();
     };
 
-    const sendMessage = () => {
-        if (roomId === '' || textField.trim() === '') {
-            toastContext.notify(
-                'error',
-                'Chưa chọn người gửi hoặc tin nhắn trống',
-            );
+    const sendMessage = async () => {
+        if (files.length === 0 && textField.trim() === '') {
+            toastContext.notify('error', 'Nội dung tin nhắn trống');
             return;
         }
-
+        const images = await sendImages();
         const obj = {
             senderId: userId,
             reciveId: roomId,
             text: textField,
+            images: images,
         };
 
         const fetchApi = async () => {
@@ -147,6 +179,8 @@ function Home() {
                 if (result) {
                     setTextField('');
                     // Gửi socket với dữ liệu đầy đủ
+                    console.log(result.data);
+
                     sendMessageSocket({
                         senderId: userId,
                         reciveId: roomId,
@@ -162,6 +196,26 @@ function Home() {
 
         fetchApi();
     };
+
+    const sendImages = async () => {
+        if (files.length === 0) return [];
+        const image = {
+            images: files,
+        };
+        const resultImage = await ImageServices.AddImages(image).catch(
+            (error) => {
+                console.log(error);
+                toastContext.notify('error', 'Có lỗi xảy ra');
+            },
+        );
+
+        if (resultImage) {
+            setFiles([]);
+            console.log(resultImage);
+
+            return resultImage.data;
+        }
+    };
     return (
         <div className="h-[100vh] overflow-hidden">
             <Header />
@@ -174,30 +228,84 @@ function Home() {
                     />
                 </div>
 
-                <div className="w-[75%]">
-                    <MessageBox MessageList={message} userId={userId} />
-                    <div className="bg-white h-[10%] flex items-center p-2">
-                        <TextField
-                            className="w-[95%] bg-slate-100"
-                            id="outlined-basic"
-                            label="Nhập tin nhắn"
-                            variant="outlined"
-                            value={textField}
-                            onChange={(e) => {
-                                setTextField(e.target.value);
-                            }}
-                        />
-                        <div
-                            className="w-[5%] flex justify-center items-center cursor-pointer select-none"
-                            onClick={() => sendMessage()}
-                        >
-                            <FontAwesomeIcon
-                                icon={faComment}
-                                className="h-[25px] hover:bg-slate-200 rounded-full p-4"
-                            />
+                {roomId ? (
+                    <div className="w-[75%]">
+                        <MessageBox MessageList={message} userId={userId} />
+                        <div className="relative ">
+                            <div className="absolute top-[-130%] right-0 left-0 flex bg-slate-200">
+                                {files.map((file, index) => (
+                                    <div
+                                        key={index}
+                                        className="group w-[100px] h-[100px] rounded-[3px] m-[5px] relative select-none"
+                                    >
+                                        <div
+                                            className="absolute top-0 right-0 bg-white p-[5px] rounded-[999px] w-[20px] h-[20px] hidden justify-center items-center mt-[2px] mr-[2px] mb-[2px] ml-[2px] hover:cursor-pointer group-hover:flex"
+                                            onClick={() =>
+                                                handleRemoveImage(index)
+                                            }
+                                        >
+                                            <FontAwesomeIcon
+                                                className="text-red-600"
+                                                icon={faXmark}
+                                            />
+                                        </div>
+                                        <img
+                                            className="w-[inherit] h-[inherit] rounded-[3px]"
+                                            src={file}
+                                            alt=""
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-white h-[10%] flex items-center p-2">
+                                <div
+                                    className="w-[5%] flex justify-center items-center cursor-pointer select-none"
+                                    //onClick={() => sendMessage()}
+                                >
+                                    <input
+                                        id="addImg"
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/png,image/gif,image/jpeg,image/webp"
+                                        multiple
+                                        onChange={handleAddImages}
+                                    />
+                                    <label
+                                        htmlFor="addImg"
+                                        className="flex justify-center items-center m-[5px] hover:cursor-pointer"
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faImage}
+                                            className="h-[25px] hover:bg-slate-200 rounded-full p-4"
+                                        />
+                                    </label>
+                                </div>
+                                <TextField
+                                    className="w-[90%] bg-slate-100"
+                                    id="outlined-basic"
+                                    label="Nhập tin nhắn"
+                                    variant="outlined"
+                                    value={textField}
+                                    onChange={(e) => {
+                                        setTextField(e.target.value);
+                                    }}
+                                />
+                                <div
+                                    className="w-[5%] flex justify-center items-center cursor-pointer select-none"
+                                    onClick={() => sendMessage()}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faMessage}
+                                        className="h-[25px] hover:bg-slate-200 rounded-full p-4"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="w-[75%]"></div>
+                )}
             </div>
         </div>
     );

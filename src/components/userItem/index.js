@@ -20,7 +20,7 @@ function UserItem({ item, onChange, roomId }) {
             </div>
             <div className="flex flex-col justify-center">
                 <div className="font-semibold">{item.userName}</div>
-                <div>
+                <div className="line-clamp-2">
                     {item.lastMessage?.text
                         ? item.lastMessage?.text
                         : 'Hình ảnh'}
