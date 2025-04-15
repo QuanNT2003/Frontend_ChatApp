@@ -13,6 +13,7 @@ import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import avatar from '~/assets/images/no_avatar.jpg';
 import ModalLoading from '~/components/ModalLoading';
+import { disconnectSocket } from '~/utils/socket';
 function Header({}) {
     const navigate = useNavigate();
     //Menu
@@ -118,6 +119,7 @@ function Header({}) {
                                         );
                                         setUser('');
                                         setDay(new Date());
+                                        disconnectSocket();
                                         setLoading(false);
                                         navigate('/login');
                                     }, 500);

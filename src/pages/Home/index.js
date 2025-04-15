@@ -8,6 +8,13 @@ import { faComment } from '@fortawesome/free-solid-svg-icons';
 import { ToastContext } from '~/components/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import * as MessageServices from '~/apiServices/messageServices';
+import {
+    sendMessageSocket,
+    socket,
+    connectSocket,
+    disconnectSocket,
+} from '~/utils/socket';
+
 function Home() {
     const navigate = useNavigate();
     const toastContext = useContext(ToastContext);
@@ -26,27 +33,12 @@ function Home() {
                     setUserId(
                         JSON.parse(window.localStorage.getItem('user'))._id,
                     );
-                    const fetchApi = async () => {
-                        console.log(
-                            JSON.parse(window.localStorage.getItem('user'))._id,
-                        );
-
-                        const result = await MessageServices.getMessageRoom(
-                            JSON.parse(window.localStorage.getItem('user'))._id,
-                        ).catch((error) => {
-                            if (error?.response?.status === 404) {
-                            } else {
-                                toastContext.notify('error', 'Có lỗi xảy ra');
-                            }
-                        });
-
-                        if (result) {
-                            setChatRoom(result.data);
-                            // console.log(result.data);
-                            console.log(result);
-                        }
-                    };
-                    fetchApi();
+                    loadRoom(
+                        JSON.parse(window.localStorage.getItem('user'))._id,
+                    );
+                    connectSocket(
+                        JSON.parse(window.localStorage.getItem('user'))._id,
+                    );
                 } else {
                     navigate('/login');
                     toastContext.notify(
@@ -56,11 +48,65 @@ function Home() {
                 }
             };
             fetchApi();
-        }, 500); // 3000 milliseconds = 3 seconds
+        }, 500);
 
-        // Cleanup function để hủy timer nếu component bị unmount trước khi timer chạy
-        return () => clearTimeout(timer);
+        return () => {
+            disconnectSocket();
+            clearTimeout(timer);
+        };
     }, []);
+
+    // useEffect riêng để xử lý socket
+    useEffect(() => {
+        if (socket) {
+            socket.on('receiveMessage', () => {
+                console.log('Đã nhận message');
+
+                // Nếu đang ở trong phòng chat, load lại tin nhắn
+                if (roomId) {
+                    const fetchApi = async () => {
+                        const result = await MessageServices.getMessage(
+                            userId,
+                            roomId,
+                        ).catch((error) => {
+                            console.log(error);
+                            toastContext.notify('error', 'Có lỗi xảy ra');
+                        });
+                        if (result) {
+                            setMessage(result.data);
+                        }
+                    };
+                    fetchApi();
+                }
+                // Load lại danh sách phòng chat
+                loadRoom(userId);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('receiveMessage');
+            }
+        };
+    });
+
+    const loadRoom = (userId) => {
+        const fetchApi = async () => {
+            const result = await MessageServices.getMessageRoom(userId).catch(
+                (error) => {
+                    if (error?.response?.status === 404) {
+                    } else {
+                        toastContext.notify('error', 'Có lỗi xảy ra');
+                    }
+                },
+            );
+
+            if (result) {
+                setChatRoom(result.data);
+            }
+        };
+        fetchApi();
+    };
 
     const onChangeRoom = (reciveId) => {
         setRoomId(reciveId);
@@ -81,32 +127,40 @@ function Home() {
     };
 
     const sendMessage = () => {
-        if (roomId === '' || textField === '') {
+        if (roomId === '' || textField.trim() === '') {
             toastContext.notify(
                 'error',
                 'Chưa chọn người gửi hoặc tin nhắn trống',
             );
-        } else {
-            const obj = {
-                senderId: userId,
-                reciveId: roomId,
-                text: textField,
-            };
-            const fetchApi = async () => {
-                const result = await MessageServices.createMessage(obj).catch(
-                    (error) => {
-                        console.log(error);
-                        toastContext.notify('error', 'Có lỗi xảy ra');
-                    },
-                );
+            return;
+        }
+
+        const obj = {
+            senderId: userId,
+            reciveId: roomId,
+            text: textField,
+        };
+
+        const fetchApi = async () => {
+            try {
+                const result = await MessageServices.createMessage(obj);
                 if (result) {
                     setTextField('');
+                    // Gửi socket với dữ liệu đầy đủ
+                    sendMessageSocket({
+                        senderId: userId,
+                        reciveId: roomId,
+                        message: result.data,
+                    });
                     toastContext.notify('success', 'Đã gửi tin nhắn');
                 }
-            };
+            } catch (error) {
+                console.log(error);
+                toastContext.notify('error', 'Có lỗi xảy ra');
+            }
+        };
 
-            fetchApi();
-        }
+        fetchApi();
     };
     return (
         <div className="h-[100vh] overflow-hidden">

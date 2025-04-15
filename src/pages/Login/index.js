@@ -4,6 +4,8 @@ import { ToastContext } from '~/components/ToastContext';
 import ModalLoading from '~/components/ModalLoading';
 import { useNavigate } from 'react-router-dom';
 import * as UserService from '~/apiServices/userServices';
+import { connectSocket } from '~/utils/socket';
+
 function Login() {
     const navigate = useNavigate();
     const toastContext = useContext(ToastContext);
@@ -65,7 +67,7 @@ function Login() {
                             JSON.stringify(result.refresh_token),
                         );
                         window.localStorage.setItem('role', 'user');
-                        // window.localStorage.setItem('role', "user");
+                        connectSocket(result.data._id);
                         toastContext.notify('success', 'Đăng nhập thành công');
                         navigate('/');
                     }
